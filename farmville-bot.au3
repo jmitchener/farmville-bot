@@ -45,6 +45,9 @@ global const $FV_HARVEST_SEARCH_COLOR = 0x95e303
 ; Color of the "Accept" button from in-game popups
 global const $FV_ACCEPT_COLOR = 0x94bc41
 
+; Color of the Facebook popup "Skip" button
+global const $FV_FACEBOOK_SKIP_COLOR = 0xf0f0f0
+
 ; FarmVille window title
 global const $FV_TITLE = "FarmVille on Facebook - Mozilla Firefox"
 
@@ -63,6 +66,7 @@ HotKeySet("{Pause}", "FVStopHarvest")
 HotKeySet("{F5}", "FVSetHarvestPos")
 HotKeySet("{F6}", "FVSetMarketPos")
 HotKeySet("{F7}", "FVSetSoybeanPos")
+HotKeySet("{F8}", "FVTestSkip")
 
 
 FVGuiInit()
@@ -216,6 +220,17 @@ Func FVAccept()
 
     If Not @error Then
         MouseClick("left", $accept_pos[0], $accept_pos[1])
+    EndIf
+
+    ; Now we check for the Facebook popups
+
+    ; Check right half to stop collision with FarmVille graphic
+    $skip_left = $search_area[0] + ($search_area[2] - $search_area[0])/2
+
+    $skip_pos = PixelSearch($skip_left, $search_area[1], $search_area[2], $search_area[3], $FV_FACEBOOK_SKIP_COLOR, 0)
+
+    If Not @error Then
+        MouseClick("left", $skip_pos[0], $skip_pos[1])
     EndIf
 EndFunc
 
