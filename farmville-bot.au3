@@ -66,8 +66,6 @@ HotKeySet("{Pause}", "FVStopHarvest")
 HotKeySet("{F5}", "FVSetHarvestPos")
 HotKeySet("{F6}", "FVSetMarketPos")
 HotKeySet("{F7}", "FVSetSoybeanPos")
-HotKeySet("{F8}", "FVTestSkip")
-
 
 FVGuiInit()
 
