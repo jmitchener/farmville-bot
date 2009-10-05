@@ -35,12 +35,15 @@ global const $FV_WIDTH = 760
 global const $FV_HEIGHT = 594
 
 ; X gap between FireFox and FarmVille
-global const $FV_BORDER_X = 213
+global const $FV_BORDER_X = 50
 ; Y gap between FireFox and FarmVille
 global const $FV_BORDER_Y = 257
 
 ; Color we are looking for to harvest
 global const $FV_HARVEST_SEARCH_COLOR = 0x95e303
+
+; Color of the "Accept" button from in-game popups
+global const $FV_ACCEPT_COLOR = 0x94bc41
 
 ; FarmVille window title
 global const $FV_TITLE = "FarmVille on Facebook - Mozilla Firefox"
@@ -48,18 +51,28 @@ global const $FV_TITLE = "FarmVille on Facebook - Mozilla Firefox"
 ; Size of your field
 global const $FV_FIELD_SIZE = 14
 
-global $harvest_pos = 0
+global $stop_harvest = False
 
-; Kills the bot if you hit Pause
-HotKeySet("{PAUSE}", "FVExit")
-HotKeySet("{F6}", "FVGetHarvestPos")
+global $harvest_pos = 0
+global $plow_pos = 0
+global $market_pos = 0
+global $soybean_pos = 0
+global $delete_pos = 0
+
+HotKeySet("{Pause}", "FVStopHarvest")
+HotKeySet("{F5}", "FVSetHarvestPos")
+HotKeySet("{F6}", "FVSetMarketPos")
+HotKeySet("{F7}", "FVSetSoybeanPos")
+
 
 FVGuiInit()
 
 Func FVGuiInit()
     GuiCreate("FarmVille Bot", 600, 400)
-    $harvest_button = GuiCtrlCreateButton("Harvest Tree", 10, 10)
-    $exp_button = GUICtrlCreateButton("Harvest Experience", 10, 50)
+
+    $tree_button = GuiCtrlCreateButton("Harvest Trees", 10, 10)
+    $field_button = GUICtrlCreateButton("Harvest/Plow Field", 10, 40)
+	$exp_button = GUICtrlCreateButton("Farm Exp", 10, 70)
 
     GuiSetState(@SW_SHOW)
 
@@ -67,22 +80,28 @@ Func FVGuiInit()
         $msg = GuiGetMsg()
 
         Select
-            Case $msg = $harvest_button
+            Case $msg = $tree_button
                 FVStartHarvest()
-            Case $msg = $exp_button
+            Case $msg = $field_button
                 If $harvest_pos == 0 Then
-                    MsgBox(0, "FarmVille Bot Error", "You must first hover over the bottom-right crop and hit F6.")
+                    FVError("You must first hover over the bottom-right crop and hit F5.")
                 Else
                     FVHarvestField($harvest_pos)
                 EndIf
+			Case $msg = $exp_button
+				FVHarvestExp()
+			Case $msg = $GUI_EVENT_CLOSE
+				ExitLoop
+				FVExit()
         EndSelect
     WEnd
 EndFunc
 
 Func FVStartHarvest()
     $search_area = FVGetSearchArea()
+	global $stop_harvest = False
 
-    While Not @error
+    While Not $stop_harvest
         $harvest_pos = PixelSearch($search_area[0], $search_area[1], $search_area[2], $search_area[3], $FV_HARVEST_SEARCH_COLOR, 0)
 
         If Not @error Then
@@ -90,7 +109,7 @@ Func FVStartHarvest()
         EndIf
     WEnd
 
-    MsgBox(0, "FarmVille Bot Error", "No more trees to harvest")
+    FVError("Sorry, I couldn't find any more trees to harvest.")
 EndFunc
 
 Func FVHarvestTree($tree_pos)
@@ -104,21 +123,74 @@ Func FVHarvestTree($tree_pos)
     MouseClick("left", $harvestX, $harvestY)
 EndFunc
 
+Func FVHarvestExp()
+	global $stop_harvest = False
+
+	While Not $stop_harvest
+		MouseClick("left", $plow_pos[0], $plow_pos[1])
+		MouseClick("left", $harvest_pos[0], $harvest_pos[1])
+
+		MouseClick("left", $market_pos[0], $market_pos[1])
+
+		Sleep(750)
+
+		MouseClick("left", $soybean_pos[0], $soybean_pos[1])
+		MouseClick("left", $harvest_pos[0], $harvest_pos[1])
+
+		Sleep(900)
+
+		MouseClick("left", $delete_pos[0], $delete_pos[1])
+		MouseClick("left", $harvest_pos[0], $harvest_pos[1])
+
+		Sleep(500)
+
+		FVAccept()
+	WEnd
+EndFunc
+
 Func FVGetSearchArea()
     local $fv_size[4]
 
+
+	$win_size = WinGetClientSize($FV_TITLE)
     $win_pos = WinGetPos($FV_TITLE)
 
     $fv_size[0] = $win_pos[0] + $FV_BORDER_X
     $fv_size[1] = $win_pos[1] + $FV_BORDER_Y
-    $fv_size[2] = $fv_size[0] + $FV_WIDTH
+    $fv_size[2] = $win_pos[0] + $win_size[0] - $FV_BORDER_X
     $fv_size[3] = $fv_size[1] + $FV_HEIGHT
+
+#cs
+	MouseMove($fv_size[0], $fv_size[1])
+	Sleep(500)
+	MouseMove($fv_size[2], $fv_size[1])
+	Sleep(500)
+	MouseMove($fv_size[2], $fv_size[3])
+	Sleep(500)
+	MouseMove($fv_size[0], $fv_size[3])
+#ce
 
     return $fv_size
 EndFunc
 
-Func FVGetHarvestPos()
+Func FVSetHarvestPos()
     global $harvest_pos = MouseGetPos()
+EndFunc
+
+Func FVSetMarketPos()
+	global $market_pos = MouseGetPos()
+
+	; Get plow and delete position via their offset from market
+
+	global $plow_pos = $market_pos
+	$plow_pos[1] -= 58
+
+	global $delete_pos = $plow_pos
+	$delete_pos[0] += 45
+EndFunc
+
+Func FVSetSoybeanPos()
+	global $soybean_pos = MouseGetPos()
 EndFunc
 
 Func FVHarvestField($start_pos)
@@ -137,10 +209,26 @@ Func FVHarvestField($start_pos)
     Next
 EndFunc
 
-Func FVHarvest($harvest_pos)
-    MouseMove($harvest_pos[0], $harvest_pos[1])
+Func FVAccept()
+	$search_area = FVGetSearchArea()
 
-    Sleep(350)
+	$accept_pos = PixelSearch($search_area[0], $search_area[1], $search_area[2], $search_area[3], $FV_ACCEPT_COLOR, 0)
+
+	If Not @error Then
+		MouseClick("left", $accept_pos[0], $accept_pos[1])
+	EndIf
+EndFunc
+
+Func FVHarvest($harvest_pos)
+    MouseClick("left", $harvest_pos[0], $harvest_pos[1])
+EndFunc
+
+Func FVError($msg)
+	MsgBox(0, "FarmVille Bot Error", $msg)
+EndFunc
+
+Func FVStopHarvest()
+	global $stop_harvest = True
 EndFunc
 
 Func FVExit()
