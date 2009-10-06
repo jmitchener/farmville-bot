@@ -198,13 +198,23 @@ EndFunc
 Func FVHarvestField($start_pos)
     local $harvest_pos = $start_pos
 
+    global $stop_harvest = False
+
     For $i = 1 To $FV_FIELD_SIZE Step 1
         For $j = 1 To $FV_FIELD_SIZE Step 1
             FVHarvest($harvest_pos)
 
             $harvest_pos[0] -= 25
             $harvest_pos[1] -= 12
+
+            If $stop_harvest Then
+                ExitLoop
+            EndIf
         Next
+
+        If $stop_harvest Then
+            ExitLoop
+        EndIf
 
         $harvest_pos[0] = $start_pos[0] + (25 * $i)
         $harvest_pos[1] = $start_pos[1] - (12 * $i)
