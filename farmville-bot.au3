@@ -115,36 +115,37 @@ Func FVStartHarvest()
 EndFunc
 
 Func FVHarvestTree($tree_pos)
-    MouseClick("left", $tree_pos[0], $tree_pos[1])
+    MouseClick("left", $tree_pos[0], $tree_pos[1], 1, 0)
 
     Sleep(500)
 
     $harvestX = $tree_pos[0] + 4
     $harvestY = $tree_pos[1] + 50
 
-    MouseClick("left", $harvestX, $harvestY)
+    MouseClick("left", $harvestX, $harvestY, 1, 0)
 EndFunc
 
 Func FVHarvestExp()
     global $stop_harvest = False
 
     While Not $stop_harvest
-        MouseClick("left", $plow_pos[0], $plow_pos[1])
-        MouseClick("left", $harvest_pos[0], $harvest_pos[1])
+        MouseClick("left", $plow_pos[0], $plow_pos[1], 1, 0)
+        MouseClick("left", $harvest_pos[0], $harvest_pos[1], 1, 0)
 
-        MouseClick("left", $market_pos[0], $market_pos[1])
+        MouseClick("left", $market_pos[0], $market_pos[1], 1, 0)
 
-        Sleep(750)
+        Sleep(550)
 
-        MouseClick("left", $soybean_pos[0], $soybean_pos[1])
-        MouseClick("left", $harvest_pos[0], $harvest_pos[1])
+        MouseClick("left", $soybean_pos[0], $soybean_pos[1], 1, 0)
+        Sleep(350)
+        MouseClick("left", $harvest_pos[0], $harvest_pos[1], 1, 0)
 
-        Sleep(900)
+        Sleep(1000)
 
-        MouseClick("left", $delete_pos[0], $delete_pos[1])
-        MouseClick("left", $harvest_pos[0], $harvest_pos[1])
+        MouseClick("left", $delete_pos[0], $delete_pos[1], 1, 0)
+        MouseClick("left", $harvest_pos[0], $harvest_pos[1], 1, 0)
 
-        Sleep(500)
+        Sleep(450)
 
         FVAccept()
     WEnd
@@ -227,7 +228,7 @@ Func FVAccept()
     $accept_pos = PixelSearch($search_area[0], $search_area[1], $search_area[2], $search_area[3], $FV_ACCEPT_COLOR, 0)
 
     If Not @error Then
-        MouseClick("left", $accept_pos[0], $accept_pos[1])
+        MouseClick("left", $accept_pos[0], $accept_pos[1], 1, 0)
     EndIf
 
     ; Now we check for the Facebook popups
@@ -238,12 +239,12 @@ Func FVAccept()
     $skip_pos = PixelSearch($skip_left, $search_area[1], $search_area[2], $search_area[3], $FV_FACEBOOK_SKIP_COLOR, 0)
 
     If Not @error Then
-        MouseClick("left", $skip_pos[0], $skip_pos[1])
+        MouseClick("left", $skip_pos[0], $skip_pos[1], 1, 0)
     EndIf
 EndFunc
 
 Func FVHarvest($harvest_pos)
-    MouseClick("left", $harvest_pos[0], $harvest_pos[1])
+    MouseClick("left", $harvest_pos[0], $harvest_pos[1], 1, 0)
 EndFunc
 
 Func FVError($msg)
