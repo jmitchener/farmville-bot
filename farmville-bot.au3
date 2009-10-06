@@ -134,7 +134,7 @@ Func FVHarvestExp()
 
         MouseClick("left", $market_pos[0], $market_pos[1], 1, 0)
 
-        Sleep(550)
+        Sleep(650)
 
         MouseClick("left", $soybean_pos[0], $soybean_pos[1], 1, 0)
         Sleep(350)
