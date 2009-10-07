@@ -103,11 +103,21 @@ Func FVStartHarvest()
     $search_area = FVGetSearchArea()
     global $stop_harvest = False
 
+    ; Sometimes PixelSearch() fails when we still have trees, we'll wait for 10 @errors then stop
+    local $error_count = 0
+
     While Not $stop_harvest
         $harvest_pos = PixelSearch($search_area[0], $search_area[1], $search_area[2], $search_area[3], $FV_HARVEST_SEARCH_COLOR, 0)
 
         If Not @error Then
+            $error_count = 0
             FVHarvestTree($harvest_pos)
+        Else
+            $error_count += 1
+
+            If $error_count >= 10 Then
+                ExitLoop
+            EndIf
         EndIf
     WEnd
 
